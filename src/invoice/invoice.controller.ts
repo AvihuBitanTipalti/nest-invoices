@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   UsePipes,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InvoiceService } from './invoice.service';
@@ -14,6 +15,7 @@ import { CreateInvoiceSchema } from 'src/invoice/schemas/create-invoice.schema';
 import { UpdateInvoiceSchema } from 'src/invoice/schemas/update-invoice.schema';
 import { CreateInvoiceDto, UpdateInvoiceDto } from 'src/invoice/invoice.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @ApiTags('invoices')
 @Controller('invoices')
@@ -70,6 +72,7 @@ export class InvoiceController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Delete an invoice' })
   @ApiResponse({
     status: 200,
