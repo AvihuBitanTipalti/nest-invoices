@@ -6,19 +6,14 @@ import {
   Body,
   Put,
   Delete,
-  BadRequestException,
+  UsePipes,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InvoiceService } from './invoice.service';
-import {
-  CreateInvoiceSchema,
-  CreateInvoiceSchemaType,
-} from 'src/invoice/schemas/create-invoice.schema';
-import {
-  UpdateInvoiceSchema,
-  UpdateInvoiceSchemaType,
-} from 'src/invoice/schemas/update-invoice.schema';
+import { CreateInvoiceSchema } from 'src/invoice/schemas/create-invoice.schema';
+import { UpdateInvoiceSchema } from 'src/invoice/schemas/update-invoice.schema';
 import { CreateInvoiceDto, UpdateInvoiceDto } from 'src/invoice/invoice.dto';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @ApiTags('invoices')
 @Controller('invoices')
@@ -26,6 +21,7 @@ export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 
   @Post()
+  @UsePipes(new ZodValidationPipe(CreateInvoiceSchema))
   @ApiOperation({ summary: 'Create an invoice' })
   @ApiResponse({
     status: 201,
@@ -33,12 +29,12 @@ export class InvoiceController {
   })
   @ApiResponse({ status: 400, description: 'Invalid payload.' })
   create(@Body() createInvoiceDto: CreateInvoiceDto) {
-    const parseResult = CreateInvoiceSchema.safeParse(createInvoiceDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(parseResult.error.errors);
-    }
-    const invoiceData: CreateInvoiceSchemaType = parseResult.data;
-    return this.invoiceService.create(invoiceData);
+    const createInvoiceData = {
+      ...createInvoiceDto,
+      dateIssued: new Date(createInvoiceDto.dateIssued).toISOString(),
+      dueDate: new Date(createInvoiceDto.dueDate).toISOString(),
+    };
+    return this.invoiceService.create(createInvoiceData);
   }
 
   @Get()
@@ -57,6 +53,7 @@ export class InvoiceController {
   }
 
   @Put(':id')
+  @UsePipes(new ZodValidationPipe(UpdateInvoiceSchema))
   @ApiOperation({ summary: 'Update an invoice' })
   @ApiResponse({
     status: 200,
@@ -64,12 +61,12 @@ export class InvoiceController {
   })
   @ApiResponse({ status: 404, description: 'Invoice not found.' })
   update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
-    const parseResult = UpdateInvoiceSchema.safeParse(updateInvoiceDto);
-    if (!parseResult.success) {
-      throw new BadRequestException(parseResult.error.errors);
-    }
-    const updateData: UpdateInvoiceSchemaType = parseResult.data;
-    return this.invoiceService.update(Number(id), updateData);
+    const updateInvoiceData = {
+      ...updateInvoiceDto,
+      dateIssued: new Date(updateInvoiceDto.dateIssued).toISOString(),
+      dueDate: new Date(updateInvoiceDto.dueDate).toISOString(),
+    };
+    return this.invoiceService.update(Number(id), updateInvoiceData);
   }
 
   @Delete(':id')
