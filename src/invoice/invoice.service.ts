@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Invoice } from 'src/interfaces/invoice.interface';
 
-@Injectable()
+@Injectable() // 👈
 export class InvoiceService {
   private invoices: Invoice[] = [];
 
